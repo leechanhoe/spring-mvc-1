@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -79,10 +80,37 @@ public class BasicItemController {
         return "basic/item";
     }
 
-    @PostMapping("/add") // 생략하면 클래스명의 첫글자를 소문자로 바꿔서 모델애트리뷰트에 넣어줌
+    //@PostMapping("/add") // 생략하면 클래스명의 첫글자를 소문자로 바꿔서 모델애트리뷰트에 넣어줌
     public String addItemV4(Item item) {
         itemRepository.save(item);
         return "basic/item";
+    }
+
+    //@PostMapping("/add") // 생략하면 클래스명의 첫글자를 소문자로 바꿔서 모델애트리뷰트에 넣어줌
+    public String addItemV5(Item item) {
+        itemRepository.save(item);
+        return "redirect:/basic/items/" + item.getId();
+    }
+
+    @PostMapping("/add") // 인코딩도 해준다
+    public String addItemV6(Item item, RedirectAttributes redirectAttributes) {
+        Item saveItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", saveItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/basic/items/{itemId}"; // status 는 없으니 쿼리 파라미터로 넘어간다
+    }
+
+    @GetMapping("/{itemId}/edit")
+    public String editForm(@PathVariable Long itemId, Model model) {
+        Item item = itemRepository.findById(itemId);
+        model.addAttribute("item", item);
+        return "basic/editForm";
+    }
+
+    @PostMapping("/{itemId}/edit")
+    public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
+        itemRepository.update(itemId, item);
+        return "redirect:/basic/items/{itemId}";
     }
 
     // 테스트용 데이터 추가
